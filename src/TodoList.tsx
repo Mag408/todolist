@@ -1,10 +1,9 @@
-import React, {
-  ChangeEventHandler,
-  KeyboardEventHandler,
-  useState,
-} from "react";
-import Button from "./Button";
+import React, { ChangeEvent, ChangeEventHandler } from "react";
 import { filterValueType } from "./App";
+import { AddItemForm } from "./AddItemForm";
+import { EditableSpan } from "./EditableSpan";
+import { Button, IconButton, Checkbox } from "@material-ui/core";
+import { Delete } from "@material-ui/icons";
 
 type TodoListPropsType = {
   id: string;
@@ -16,6 +15,12 @@ type TodoListPropsType = {
   addTask: (taskValue: string, todolistId: string) => void;
   changeIsDone: (task: TaskType, isDone: boolean, todolistId: string) => void;
   filter: "all" | "active" | "completed";
+  changeTaskTitle: (
+    task: TaskType,
+    newTitle: string,
+    todolistId: string
+  ) => void;
+  changeTodoListTitle: (newValue: string, todolistId: string) => void;
 };
 
 export type TaskType = {
@@ -24,115 +29,82 @@ export type TaskType = {
   isDone: boolean;
 };
 
-const TodoList: React.FC<TodoListPropsType> = ({
-  id,
-  title,
-  tasks,
-  removeTask,
-  removeTodoList,
-  changeFilter,
-  addTask,
-  changeIsDone,
-  filter,
-}) => {
-  const [inputValue, setInputValue] = useState("");
-  const [error, setError] = useState<boolean>(false);
+const TodoList: React.FC<TodoListPropsType> = (props) => {
+  const onAllButtonClick = () => props.changeFilter("all", props.id);
+  const onActiveButtonClick = () => props.changeFilter("active", props.id);
+  const onCompletedButtonClick = () =>
+    props.changeFilter("completed", props.id);
 
-  function addendumTask(inputValue: string) {
-    if (!inputValue.trim()) {
-      setError(true);
-      return;
-    }
-    addTask(inputValue, id);
-    setInputValue("");
-  }
+  const onClickTodoListRemoveButton = () => props.removeTodoList(props.id);
 
-  const onChangeInput: ChangeEventHandler<HTMLInputElement> = (event) => {
-    setInputValue(event.target.value);
+  const changeTodoListTitleHandler = (newTitle: string) => {
+    props.changeTodoListTitle(newTitle, props.id);
   };
 
-  const onKyePressInput: KeyboardEventHandler<HTMLInputElement> = (event) => {
-    setError(false);
-    if (event.key === "Enter") {
-      addendumTask(inputValue);
-    }
+  const addTask = (title: string) => {
+    props.addTask(title, props.id);
   };
-
-  const onAllButtonClick = () => changeFilter("all", id);
-  const onActiveButtonClick = () => changeFilter("active", id);
-  const onCompletedButtonClick = () => changeFilter("completed", id);
-
-  const onClickTodoListButton = () => removeTodoList(id);
 
   return (
     <div className="todoList">
       <h3>
-        {title} <button onClick={onClickTodoListButton}>X</button>
+        <EditableSpan
+          title={props.title}
+          onChange={changeTodoListTitleHandler}
+        />{" "}
+        <IconButton onClick={onClickTodoListRemoveButton}>
+          <Delete />
+        </IconButton>
       </h3>
+      <AddItemForm addItem={addTask} />
       <div>
-        <input
-          type="text"
-          value={inputValue}
-          onChange={onChangeInput}
-          onKeyDown={onKyePressInput}
-          className={error ? "error" : ""}
-        />
-        <button
-          style={{
-            width: "15px",
-            height: "21px",
-            textAlign: "center",
-            padding: "0 2px",
-          }}
-          onClick={() => {
-            addendumTask(inputValue);
-          }}
-        >
-          +
-        </button>
-        <div className={error ? "error-messenge" : ""}>
-          {error ? "Field is reqiured" : ""}
-        </div>
-      </div>
-      <ul>
-        {tasks.map((task) => {
-          const onClickRemoveTask = () => removeTask(task.id, id);
-          const onClickCheckbox = (e: any) => {
-            changeIsDone(task, e.target.checked, id);
+        {props.tasks.map((task) => {
+          const onClickRemoveTask = () => props.removeTask(task.id, props.id);
+          const onClickCheckbox = (e: ChangeEvent<HTMLInputElement>) => {
+            props.changeIsDone(task, e.target.checked, props.id);
+          };
+          const onChangeTaskTitleHangler = (nweValue: string) => {
+            props.changeTaskTitle(task, nweValue, props.id);
           };
 
           return (
-            <li className={task.isDone ? "is-done" : ""} key={task.id}>
-              <input
-                onChange={onClickCheckbox}
-                type="checkbox"
-                checked={task.isDone}
+            <div className={task.isDone ? "is-done" : ""} key={task.id}>
+              <Checkbox onChange={onClickCheckbox} checked={task.isDone} />
+              <EditableSpan
+                onChange={onChangeTaskTitleHangler}
+                title={task.title}
               />
-              <span>{task.title}</span>
-              <button onClick={onClickRemoveTask}>x</button>
-            </li>
+              <IconButton onClick={onClickRemoveTask}>
+                <Delete />
+              </IconButton>
+            </div>
           );
         })}
-      </ul>
+      </div>
       <div>
-        <button
-          className={filter === "all" ? "active-filter" : ""}
+        <Button
+          variant={props.filter === "all" ? "contained" : "text"}
+          className={props.filter === "all" ? "active-filter" : ""}
           onClick={onAllButtonClick}
         >
           All
-        </button>
-        <button
-          className={filter === "active" ? "active-filter" : ""}
+        </Button>
+        <Button
+          variant={props.filter === "active" ? "contained" : "text"}
+          color={"primary"}
+          className={props.filter === "active" ? "active-filter" : ""}
           onClick={onActiveButtonClick}
         >
           Active
-        </button>
-        <button
-          className={filter === "completed" ? "active-filter" : ""}
+        </Button>
+        <Button
+          variant={props.filter === "completed" ? "contained" : "text"}
+          color={"secondary"}
+          className={props.filter === "completed" ? "active-filter" : ""}
           onClick={onCompletedButtonClick}
         >
           Completed
-        </button>
+        </Button>
       </div>
     </div>
   );
