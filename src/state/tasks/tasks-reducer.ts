@@ -3,6 +3,8 @@ import { TaskStateType } from "../../App";
 import {
   AddTodoListActionType,
   RemoveTodoListActionType,
+  todoListId1,
+  todoListId2,
 } from "../todoList/todoList-reducer";
 
 type removeTaskActionType = {
@@ -39,8 +41,21 @@ type ActionType =
   | AddTodoListActionType
   | RemoveTodoListActionType;
 
+const initialState: TaskStateType = {
+  [todoListId1]: [
+    { id: v1(), title: "HTML", isDone: true },
+    { id: v1(), title: "JS/ES", isDone: false },
+    { id: v1(), title: "REACT", isDone: true },
+  ],
+  [todoListId2]: [
+    { id: v1(), title: "Bread", isDone: true },
+    { id: v1(), title: "Butter", isDone: false },
+    { id: v1(), title: "Milk", isDone: true },
+  ],
+};
+
 export const tasksReducer = (
-  state: TaskStateType,
+  state: TaskStateType = initialState,
   action: ActionType
 ): TaskStateType => {
   switch (action.type) {
@@ -90,7 +105,7 @@ export const tasksReducer = (
       return copyState;
     }
     default:
-      throw new Error("I don't understand this action type");
+      return state;
   }
 };
 export const removeTaskAC = (
