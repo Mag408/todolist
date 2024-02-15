@@ -8,6 +8,7 @@ import ControlPointIcon from "@material-ui/icons/ControlPoint";
 
 type AddItemFormPropsType = {
   addItem: (title: string) => void;
+  disabled?: boolean;
 };
 
 export const AddItemForm: React.FC<AddItemFormPropsType> = React.memo(
@@ -48,12 +49,14 @@ export const AddItemForm: React.FC<AddItemFormPropsType> = React.memo(
           onKeyDown={onKyePressInput}
           error={!!error}
           helperText={error}
+          disabled={props.disabled}
         />
         <IconButton
           onClick={() => {
             addendumTask(inputValue);
           }}
           color={"primary"}
+          disabled={props.disabled}
         >
           <ControlPointIcon />
         </IconButton>

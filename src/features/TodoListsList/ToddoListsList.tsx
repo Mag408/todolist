@@ -123,15 +123,13 @@ const ToddoListsList: React.FC<ToddoListsListPropsType> = (props) => {
               <Paper style={{ padding: "20px" }}>
                 <TodoList
                   key={tl.id}
-                  id={tl.id}
+                  todoList={tl}
                   tasks={tasks[tl.id]}
-                  title={tl.title}
                   removeTask={removeTask}
                   removeTodoList={removeTodoList}
                   changeFilter={changeFilter}
                   addTask={createTask}
                   changeStatus={changeStatus}
-                  filter={tl.filter}
                   changeTaskTitle={changeTaskTitle}
                   changeTodoListTitle={changeTodoListTitle}
                 />
