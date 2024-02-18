@@ -58,6 +58,13 @@ export type GetTasksRespons = {
   items: TaskType[];
 };
 
+export type LoginParamsType = {
+  email: string;
+  password: string;
+  rememberMe: boolean;
+  captcha?: string;
+};
+
 const settings = {
   withCredentials: true,
   headers: {
@@ -107,5 +114,26 @@ export const todoListAPI = {
       `/todo-lists/${todoListId}/tasks/${taskId}`,
       model
     );
+  },
+};
+
+export const authAPI = {
+  login(data: LoginParamsType) {
+    const promise = instance.post<ResponseType<{ userId?: number }>>(
+      "auth/login",
+      data
+    );
+    return promise;
+  },
+  logout() {
+    const promise = instance.delete<ResponseType>("auth/login");
+    return promise;
+  },
+  me() {
+    const promise =
+      instance.get<ResponseType<{ id: number; email: string; login: string }>>(
+        "auth/me"
+      );
+    return promise;
   },
 };

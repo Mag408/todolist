@@ -19,6 +19,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppRootStateType } from "../../state/store";
 import { TaskStatuses, TaskType } from "../../api/todoLists-api";
 import TodoList from "./TodoList/TodoList";
+import { Navigate } from "react-router-dom";
 
 export type TaskStateType = {
   [key: string]: Array<TaskType>;
@@ -34,8 +35,14 @@ const ToddoListsList: React.FC<ToddoListsListPropsType> = (props) => {
   const tasks = useSelector<AppRootStateType, TaskStateType>(
     (state) => state.tasks
   );
+  const isLoggedIn = useSelector<AppRootStateType, boolean>(
+    (state) => state.login.isLoggedIn
+  );
 
   useEffect(() => {
+    if (!isLoggedIn) {
+      return;
+    }
     //@ts-ignore
     dispatch(fetchTodoListsTC());
   }, [dispatch]);
@@ -111,6 +118,10 @@ const ToddoListsList: React.FC<ToddoListsListPropsType> = (props) => {
     [dispatch]
   );
 
+  if (!isLoggedIn) {
+    console.log(isLoggedIn);
+    return <Navigate to={"/login"} />;
+  }
   return (
     <div>
       <Grid container style={{ padding: "20px" }}>

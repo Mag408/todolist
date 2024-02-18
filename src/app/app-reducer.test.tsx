@@ -11,6 +11,7 @@ beforeEach(() => {
   statrState = {
     error: null,
     status: "idle",
+    isInitialized: false,
   };
 });
 

@@ -80,6 +80,7 @@ export const tasksReducer = (
       delete copyState[action.id];
       return copyState;
     case "SET-TODOLISTS": {
+      debugger;
       const copyState = { ...state };
       action.todoLists.forEach((tl) => {
         copyState[tl.id] = [];
@@ -87,6 +88,7 @@ export const tasksReducer = (
       return copyState;
     }
     case "SET-TASKS":
+      debugger;
       return { ...state, [action.todoListId]: action.tasks };
     default:
       return state;
