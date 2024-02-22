@@ -148,8 +148,7 @@ export const removeTaskTC = (taskId: string, todoListId: string) => {
       .deleteTask(todoListId, taskId)
       .then((res) => {
         if (res.data.resultCode === 0) {
-          const action = removeTaskAC(taskId, todoListId);
-          dispatch(action);
+          dispatch(removeTaskAC(taskId, todoListId));
           dispatch(setStatusAC("succeeded"));
         } else {
           handleServerAppError(res.data, dispatch);
