@@ -34,7 +34,10 @@ const initialState: Array<TodoListDomainType> = [
 ];
 
 test("user reducer should increment only age", () => {
-  const endState = todoListReducer(initialState, removeTodoListAC(todoListId1));
+  const endState = todoListReducer(
+    initialState,
+    removeTodoListAC({ id: todoListId1 })
+  );
 
   expect(endState.length).toBe(1);
   expect(endState[0].id).toBe(todoListId2);
@@ -46,10 +49,12 @@ test("correct todoList should be added", () => {
   const endState = todoListReducer(
     initialState,
     addTodoListAC({
-      id: "testTodoListId",
-      title: newTodoListTitle,
-      order: 0,
-      addedDate: "",
+      todoList: {
+        id: "testTodoListId",
+        title: newTodoListTitle,
+        order: 0,
+        addedDate: "",
+      },
     })
   );
 
@@ -64,7 +69,10 @@ test("correct todoList should change its name", () => {
 
   const endState = todoListReducer(
     initialState,
-    changeTodoListTitleAC(newTodoListTitle, todoListId2)
+    changeTodoListTitleAC({
+      newTodoListTitle: newTodoListTitle,
+      id: todoListId2,
+    })
   );
 
   expect(endState[0].title).toBe("What to learn");
@@ -76,7 +84,7 @@ test("correct filter of todoList should be changed", () => {
 
   const endState = todoListReducer(
     initialState,
-    changeTodoListFilterAC(todoListId2, newFilter)
+    changeTodoListFilterAC({ id: todoListId2, newFilter })
   );
 
   expect(endState[0].filter).toBe("all");
@@ -88,7 +96,7 @@ test("correct entity status of todoList should be changed", () => {
 
   const endState = todoListReducer(
     initialState,
-    changeTodoListEntityStatusAC(todoListId2, newStatus)
+    changeTodoListEntityStatusAC({ id: todoListId2, status: newStatus })
   );
 
   expect(endState[0].entityStatus).toBe("idle");
@@ -96,7 +104,10 @@ test("correct entity status of todoList should be changed", () => {
 });
 
 test("todoLists should be set to the state", () => {
-  const endState = todoListReducer([], setTodoListsAC(initialState));
+  const endState = todoListReducer(
+    [],
+    setTodoListsAC({ todoLists: initialState })
+  );
 
   expect(endState.length).toBe(2);
   expect(endState[1].id).toBe(todoListId2);

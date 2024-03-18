@@ -5,6 +5,7 @@ import {
   handleServerNetworkError,
 } from "../utils/error-utils";
 import { setIsLoggedInAC } from "../features/Loign/login-reducer";
+import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 export type RequestStatusType = "idle" | "loading" | "succeeded" | "failed";
 
@@ -20,65 +21,44 @@ const initialState: initialStateType = {
   isInitialized: false,
 };
 
+const appSlice = createSlice({
+  name: "app",
+  initialState: initialState,
+  reducers: {
+    setStatusAC(state, action: PayloadAction<{ status: RequestStatusType }>) {
+      state.status = action.payload.status;
+    },
+    setErrorAC(state, action: PayloadAction<{ errorMessage: string | null }>) {
+      state.error = action.payload.errorMessage;
+    },
+    setAppInitializedAC(state, action: PayloadAction<{ value: boolean }>) {
+      state.isInitialized = action.payload.value;
+    },
+  },
+});
+
+export const appReducer = appSlice.reducer;
+export const { setStatusAC, setErrorAC, setAppInitializedAC } =
+  appSlice.actions;
+
 export type SetErrorACType = ReturnType<typeof setErrorAC>;
 export type SetStatusACType = ReturnType<typeof setStatusAC>;
 export type SetAppInitializedACType = ReturnType<typeof setAppInitializedAC>;
 
-type ActionsType = SetStatusACType | SetErrorACType | SetAppInitializedACType;
-
-type InitialStateType = typeof initialState;
-
-export const appReducer = (
-  state: InitialStateType = initialState,
-  action: ActionsType
-): InitialStateType => {
-  switch (action.type) {
-    case "APP/SET-STATUS":
-      return { ...state, status: action.status };
-    case "APP/SET-ERROR":
-      return { ...state, error: action.errorMessage };
-    case "APP/SET-IS-INITIALIZED":
-      return { ...state, isInitialized: action.value };
-    default:
-      return state;
-  }
-};
-
-export const setStatusAC = (status: RequestStatusType) => {
-  return {
-    type: "APP/SET-STATUS",
-    status,
-  } as const;
-};
-
-export const setErrorAC = (errorMessage: string | null) => {
-  return {
-    type: "APP/SET-ERROR",
-    errorMessage,
-  } as const;
-};
-
-export const setAppInitializedAC = (value: boolean) => {
-  return {
-    type: "APP/SET-IS-INITIALIZED",
-    value,
-  } as const;
-};
-
 // thunks
 
 export const initializeAppTC = () => (dispatch: Dispatch) => {
-  dispatch(setStatusAC("loading"));
+  dispatch(setStatusAC({ status: "loading" }));
   authAPI
     .me()
     .then((res) => {
       if (res.data.resultCode === 0) {
-        dispatch(setIsLoggedInAC(true));
-        dispatch(setAppInitializedAC(true));
+        dispatch(setIsLoggedInAC({ value: true }));
+        dispatch(setAppInitializedAC({ value: true }));
       } else {
       }
-      dispatch(setAppInitializedAC(true));
-      dispatch(setStatusAC("succeeded"));
+      dispatch(setAppInitializedAC({ value: true }));
+      dispatch(setStatusAC({ status: "succeeded" }));
     })
     .catch((error) => {
       handleServerNetworkError(error, dispatch);

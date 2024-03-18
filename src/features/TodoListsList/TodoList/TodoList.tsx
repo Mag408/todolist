@@ -107,7 +107,7 @@ const TodoList: React.FC<TodoListPropsType> = React.memo((props) => {
         disabled={props.todoList.entityStatus === "loading"}
       />
       <div>
-        {taskForTodoList.map((task) => (
+        {taskForTodoList?.map((task) => (
           <Task
             key={task.id}
             changeIsDone={props.changeStatus}

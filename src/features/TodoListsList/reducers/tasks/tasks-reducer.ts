@@ -2,12 +2,16 @@ import {
   AddTodoListActionType,
   RemoveTodoListActionType,
   SetTodoListsActionType,
+  addTodoListAC,
+  removeTodoListAC,
+  setTodoListsAC,
 } from "../todoList/todoList-reducer";
 import { TaskStateType } from "../../ToddoListsList";
 import {
   TaskPriorities,
   TaskStatuses,
   TaskType,
+  TodoListType,
   UpdateTaskModelType,
   todoListAPI,
 } from "../../../../api/todoLists-api";
@@ -15,26 +19,15 @@ import { Dispatch } from "redux";
 import {
   SetErrorACType,
   SetStatusACType,
-  setErrorAC,
   setStatusAC,
 } from "../../../../app/app-reducer";
 import {
   handleServerAppError,
   handleServerNetworkError,
 } from "../../../../utils/error-utils";
+import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 // types
-type ActionType =
-  | ReturnType<typeof removeTaskAC>
-  | ReturnType<typeof addTaskAC>
-  | ReturnType<typeof updateTaskAC>
-  | ReturnType<typeof setTasksAC>
-  | RemoveTodoListActionType
-  | SetTodoListsActionType
-  | AddTodoListActionType;
-
-type TuhnkDisparchType = ActionType | SetStatusACType | SetErrorACType;
-
 export type UpdateDomainTaskModelType = {
   title?: string;
   description?: string;
@@ -46,110 +39,87 @@ export type UpdateDomainTaskModelType = {
 
 const initialState: TaskStateType = {};
 
-export const tasksReducer = (
-  state: TaskStateType = initialState,
-  action: ActionType
-): TaskStateType => {
-  switch (action.type) {
-    case "REMOVE-TASK":
-      return {
-        ...state,
-        [action.todoListId]: state[action.todoListId].filter(
-          (t) => t.id !== action.taskId
-        ),
-      };
-    case "ADD-TASK":
-      return {
-        ...state,
-        [action.task.todoListId]: [
-          action.task,
-          ...state[action.task.todoListId],
-        ],
-      };
-    case "UPDATE-TASK":
-      return {
-        ...state,
-        [action.todoListId]: state[action.todoListId].map((t) =>
-          t.id === action.taskId ? { ...t, ...action.model } : t
-        ),
-      };
-    case "ADD-TODOLIST":
-      return { ...state, [action.todoList.id]: [] };
-    case "REMOVE-TODOLIST":
-      const copyState = { ...state };
-      delete copyState[action.id];
-      return copyState;
-    case "SET-TODOLISTS": {
-      debugger;
-      const copyState = { ...state };
-      action.todoLists.forEach((tl) => {
-        copyState[tl.id] = [];
+const tasksSlice = createSlice({
+  name: "login",
+  initialState: initialState,
+  reducers: {
+    removeTaskAC(
+      state,
+      action: PayloadAction<{ taskId: string; todoListId: string }>
+    ) {
+      const tasks = state[action.payload.todoListId];
+      const index = tasks.findIndex((t) => t.id === action.payload.taskId);
+      if (index !== -1) tasks.splice(index, 1);
+    },
+    addTaskAC(state, action: PayloadAction<{ task: TaskType }>) {
+      const tasks = state[action.payload.task.todoListId];
+      tasks.unshift(action.payload.task);
+    },
+    updateTaskAC(
+      state,
+      action: PayloadAction<{
+        taskId: string;
+        model: UpdateDomainTaskModelType;
+        todoListId: string;
+      }>
+    ) {
+      const tasks = state[action.payload.todoListId];
+      const index = tasks.findIndex((t) => t.id === action.payload.taskId);
+      if (index !== -1) {
+        tasks[index] = { ...tasks[index], ...action.payload.model };
+      }
+    },
+    setTasksAC(
+      state,
+      action: PayloadAction<{ tasks: TaskType[]; todoListId: string }>
+    ) {
+      state[action.payload.todoListId] = action.payload.tasks;
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(addTodoListAC, (state, action) => {
+        state[action.payload.todoList.id] = [];
+      })
+      .addCase(removeTodoListAC, (state, action) => {
+        delete state[action.payload.id];
+      })
+      .addCase(setTodoListsAC, (state, action) => {
+        action.payload.todoLists.forEach((tl) => {
+          state[tl.id] = [];
+        });
       });
-      return copyState;
-    }
-    case "SET-TASKS":
-      debugger;
-      return { ...state, [action.todoListId]: action.tasks };
-    default:
-      return state;
-  }
-};
+  },
+});
 
-// actions
-export const removeTaskAC = (taskId: string, todoListId: string) => {
-  return {
-    type: "REMOVE-TASK",
-    taskId: taskId,
-    todoListId: todoListId,
-  } as const;
-};
-
-export const addTaskAC = (task: TaskType) => {
-  return { type: "ADD-TASK", task } as const;
-};
-
-export const updateTaskAC = (
-  taskId: string,
-  model: UpdateDomainTaskModelType,
-  todoListId: string
-) => {
-  return {
-    type: "UPDATE-TASK",
-    taskId: taskId,
-    model: model,
-    todoListId: todoListId,
-  } as const;
-};
-
-export const setTasksAC = (tasks: TaskType[], todoListId: string) => {
-  return {
-    type: "SET-TASKS",
-    tasks,
-    todoListId,
-  } as const;
-};
+export const tasksReducer = tasksSlice.reducer;
+export const { removeTaskAC, addTaskAC, updateTaskAC, setTasksAC } =
+  tasksSlice.actions;
 
 // thunks
 export const fetchTasksTC = (todoListId: string) => {
-  return (dispatch: Dispatch<TuhnkDisparchType>) => {
-    dispatch(setStatusAC("loading"));
+  return (dispatch: Dispatch) => {
+    dispatch(setStatusAC({ status: "loading" }));
     todoListAPI.getTasks(todoListId).then((res) => {
-      const action = setTasksAC(res.data.items, todoListId);
+      const action = setTasksAC({
+        tasks: res.data.items,
+        todoListId: todoListId,
+      });
       dispatch(action);
-      dispatch(setStatusAC("succeeded"));
+      dispatch(setStatusAC({ status: "succeeded" }));
     });
   };
 };
 
 export const removeTaskTC = (taskId: string, todoListId: string) => {
-  return (dispatch: Dispatch<TuhnkDisparchType>) => {
-    dispatch(setStatusAC("loading"));
+  return (dispatch: Dispatch) => {
+    dispatch(setStatusAC({ status: "loading" }));
     todoListAPI
       .deleteTask(todoListId, taskId)
       .then((res) => {
         if (res.data.resultCode === 0) {
-          dispatch(removeTaskAC(taskId, todoListId));
-          dispatch(setStatusAC("succeeded"));
+          dispatch(removeTaskAC({ taskId: taskId, todoListId: todoListId }));
+          dispatch(setStatusAC({ status: "succeeded" }));
         } else {
           handleServerAppError(res.data, dispatch);
         }
@@ -161,15 +131,15 @@ export const removeTaskTC = (taskId: string, todoListId: string) => {
 };
 
 export const addTaskTC = (taskText: string, todoListId: string) => {
-  return (dispatch: Dispatch<TuhnkDisparchType>) => {
-    dispatch(setStatusAC("loading"));
+  return (dispatch: Dispatch) => {
+    dispatch(setStatusAC({ status: "loading" }));
     todoListAPI
       .createTask(todoListId, taskText)
       .then((res) => {
         if (res.data.resultCode === 0) {
-          const action = addTaskAC(res.data.data.item);
+          const action = addTaskAC({ task: res.data.data.item });
           dispatch(action);
-          dispatch(setStatusAC("succeeded"));
+          dispatch(setStatusAC({ status: "succeeded" }));
         } else {
           handleServerAppError(res.data, dispatch);
         }
@@ -184,8 +154,8 @@ export const updateTaskTC = (
   task: TaskType,
   domainModail: UpdateDomainTaskModelType
 ) => {
-  return (dispatch: Dispatch<TuhnkDisparchType>) => {
-    dispatch(setStatusAC("loading"));
+  return (dispatch: Dispatch) => {
+    dispatch(setStatusAC({ status: "loading" }));
     const apiModel: UpdateTaskModelType = {
       title: task.title,
       description: task.description,
@@ -202,9 +172,13 @@ export const updateTaskTC = (
       })
       .then((res) => {
         if (res.data.resultCode === 0) {
-          const action = updateTaskAC(task.id, apiModel, task.todoListId);
+          const action = updateTaskAC({
+            taskId: task.id,
+            model: apiModel,
+            todoListId: task.todoListId,
+          });
           dispatch(action);
-          dispatch(setStatusAC("succeeded"));
+          dispatch(setStatusAC({ status: "succeeded" }));
         } else {
           handleServerAppError(res.data, dispatch);
         }

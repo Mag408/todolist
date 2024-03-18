@@ -21,7 +21,7 @@ export function ErrorSnackbar() {
       return;
     }
 
-    dispatch(setErrorAC(null));
+    dispatch(setErrorAC({ errorMessage: null }));
   };
 
   const isOpen = error !== null;
